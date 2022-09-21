@@ -30,6 +30,7 @@
 <img src="./screenshots/postman_getfromdb.png" width="1000" />
 
 ## Files are automatically saved in the docker volume created on your computer.
+<img src="./screenshots/docker_volume.png" width="1000" />
 
 # If i had more time.
 

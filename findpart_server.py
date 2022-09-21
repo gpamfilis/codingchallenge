@@ -1,34 +1,38 @@
 import csv
-from email.policy import default
-import time
-from urllib import request
+import json
 import logging
+import os
+import time
 import warnings
 from datetime import datetime
-from itertools import chain
-import os
-from flask_sqlalchemy import SQLAlchemy
+from email.policy import default
 from io import StringIO
-import csv
-from flask import make_response
-import json
+from itertools import chain
+from urllib import request
+
 from bs4 import BeautifulSoup
+from flask import Flask, jsonify, make_response, request, send_file
+from flask_sqlalchemy import SQLAlchemy
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.options import Options
 from webdriver_manager.firefox import GeckoDriverManager
-from flask import Flask, request, jsonify, send_file
 
-db = SQLAlchemy()
-options = Options()
-options.add_argument("--headless")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+
 logger = logging.getLogger(__name__)
 app = Flask(__name__)
+db = SQLAlchemy()
+
+options = Options()
+options.add_argument("--headless")
+
 
 def utc_now():
     return datetime.utcnow().__str__().split(".")[0]
+
 
 class ComponentResults(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -154,6 +158,7 @@ def filter_out_component_names(dfs: list, partID: str) -> list:
     final_filtered = [fi for fi in final if fi[-4].startswith(partID)]
     return final_filtered
 
+
 def save_data_to_db(data, partID):
     results = ComponentResults()
     results.name = partID
@@ -162,8 +167,9 @@ def save_data_to_db(data, partID):
     try:
         db.session.commit()
     except:
-        
+
         db.session.rollback()
+
 
 def save_data_to_file(data, partID, base_dir="../data", custom_file_name=""):
     columns = [
@@ -230,8 +236,7 @@ def main(partID, distributors, logger):
 
 @app.route("/", methods=["GET"])
 def instructions():
-    # print('jhklsfhd')
-    return "HELLO"
+    return "Welcome to the component scraper. Please read README.md"
 
 
 @app.route("/findpart", methods=["POST"])
@@ -271,7 +276,8 @@ def findpart():
     save_data_to_db(data, partID=partID)
     return jsonify(data)
 
-@app.route('/retrivefromdb', methods=['POST'])
+
+@app.route("/retrivefromdb", methods=["POST"])
 def retrivefromdb():
     data = request.get_json()
     if "partID" not in data:
@@ -284,13 +290,18 @@ def retrivefromdb():
     if results:
         items = []
         for result in results:
-            items.append({"data":json.loads(result.data), "datetime_downloaded":result.datetime_downloaded})
+            items.append(
+                {
+                    "data": json.loads(result.data),
+                    "datetime_downloaded": result.datetime_downloaded,
+                }
+            )
         return jsonify(items)
 
-    return 'No Data Found'
+    return "No Data Found"
 
 
-@app.route("/download", methods=['POST'])
+@app.route("/download", methods=["POST"])
 def download():
     data = request.get_json()
     if "partID" not in data:
@@ -298,16 +309,16 @@ def download():
     partID = data["partID"]
     if not partID:
         return "Please provide us with a valid component id"
-    path = f'../data/{partID}_all_results.csv'
+    path = f"../data/{partID}_all_results.csv"
     app.logger.info(path)
     file = os.path.isfile(path)
     if not file:
-        return 'File does not exist. Please download file.'
+        return "File does not exist. Please download file."
     return send_file(path, as_attachment=True)
 
 
 if __name__ == "__main__":
-    app.config.update({"SQLALCHEMY_DATABASE_URI":"sqlite:///../data/alpas.sqlite"})
+    app.config.update({"SQLALCHEMY_DATABASE_URI": "sqlite:///../data/alpas.sqlite"})
     db.init_app(app)
     db.app = app
     db.create_all()
