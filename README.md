@@ -35,3 +35,5 @@
 
 I would spin up a redis instance and using the rq package of python i would submit jobs for a worker to do in the background. This is because the request stays in loading mode. 
 
+
+<img src="./screenshots/other_design.png" width="1000" />
