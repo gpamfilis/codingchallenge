@@ -5,19 +5,16 @@ import os
 import time
 import warnings
 from datetime import datetime
-from email.policy import default
-from io import StringIO
 from itertools import chain
 from urllib import request
 
 from bs4 import BeautifulSoup
-from flask import Flask, jsonify, make_response, request, send_file
+from flask import Flask, jsonify, request, send_file
 from flask_sqlalchemy import SQLAlchemy
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.firefox.options import Options
-from webdriver_manager.firefox import GeckoDriverManager
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -200,7 +197,6 @@ def main(partID, distributors, logger):
 
         for k, v in distributors.items():
             driver = setup_driver()
-            # driver = webdriver.Firefox(executable_path=GeckoDriverManager().install())
             logger(k)
             time.sleep(4)
             distributor = k
