@@ -1,0 +1,23 @@
+FROM python:3.10-alpine3.16
+
+RUN echo "https://dl-4.alpinelinux.org/alpine/v3.16/main" >> /etc/apk/repositories && \
+    echo "https://dl-4.alpinelinux.org/alpine/v3.16/community" >> /etc/apk/repositories
+
+RUN apk update
+RUN apk add build-base
+RUN apk add chromium chromium-chromedriver
+
+RUN pip install --upgrade pip
+
+RUN pip install selenium==4.0.0
+RUN pip install bs4
+RUN pip install webdriver_manager==3.8.3
+RUN pip install lxml
+RUN pip install flask==2.2.2
+RUN pip install flask_sqlalchemy==2.5.1
+
+RUN mkdir -p /app
+WORKDIR /app
+COPY findpart_server.py .
+EXPOSE 5000
+CMD ["python", "findpart_server.py"]
